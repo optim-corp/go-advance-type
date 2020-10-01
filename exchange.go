@@ -27,6 +27,24 @@ func Str2Int32(str string, defaultNumber int32) int32 {
 		return int32(i)
 	}
 }
+func Str2Double(str string, defaultNumber float64) float64 {
+	if i, err := strconv.ParseFloat(str, 64); err != nil {
+		return defaultNumber
+	} else {
+		return i
+	}
+}
+func Str2Float(str string, defaultNumber float32) float32 {
+	if i, err := strconv.ParseFloat(str, 32); err != nil {
+		return defaultNumber
+	} else {
+		return float32(i)
+	}
+}
+
+func Double2Str(x float64) string {
+	return strconv.FormatFloat(x, 'f', -1, 64)
+}
 
 func Long2Str(x int64) string {
 	return strconv.FormatInt(x, 10)
@@ -36,16 +54,37 @@ func Int2Str(x int) string {
 }
 
 func Any2Int32(in interface{}, defaultNumber int32) int32 {
-	return Str2Int32(Any2Str(in, Int2Str(int(defaultNumber))), defaultNumber)
+	if n, ok := in.(int32); ok {
+		return n
+	}
+	return defaultNumber
 
 }
-
 func Any2Int(in interface{}, defaultNumber int) int {
-	return Str2Int(Any2Str(in, Int2Str(defaultNumber)), defaultNumber)
+	if n, ok := in.(int); ok {
+		return n
+	}
+	return defaultNumber
 
 }
 func Any2Long(in interface{}, defaultNumber int64) int64 {
-	return Str2Long(Any2Str(in, Long2Str(defaultNumber)), defaultNumber)
+	if n, ok := in.(int64); ok {
+		return n
+	}
+	return defaultNumber
+}
+
+func Any2Float(in interface{}, defaultNumber float32) float32 {
+	if n, ok := in.(float32); ok {
+		return n
+	}
+	return defaultNumber
+}
+func Any2Double(in interface{}, defaultNumber float64) float64 {
+	if n, ok := in.(float64); ok {
+		return n
+	}
+	return defaultNumber
 }
 
 func Any2Str(any interface{}, defaultStr string) string {
