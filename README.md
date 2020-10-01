@@ -36,6 +36,7 @@
 * bool
 
 ```go
+import ad_type "github.com/optim-kazuhiro-seida/go-advance-type"
 func main() {
 	fmt.Println(ad_type.Long2Str(19018019) + "/" + ad_type.Int2Str(1029))
 	fmt.Println(ad_type.Any2Int32("3211", 0))
