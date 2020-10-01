@@ -2,34 +2,38 @@
 
 痒い所に手が届くユーティリティ
 
-* 型変換
-  * 数字から文字列へ変換	
-    * int     -> string
-    * int32   -> string
-    * int64   -> string
-    * float32 -> string
-    * float64 -> string
-  * string 
-    * string -> int
-    * string -> int32
-    * string -> int64
-    * string -> float32
-    * string -> float64
-* Max関数Min関数
-  * string
-  * int
-  * int32
-  * int64
-  * float32
-  * float64
-* Stream
-  * string
-  * float32
-  * float64
-  * int
-  * int32
-  * int64
-  * bool
+## 型変換
+* 数字から文字列へ変換	
+  * int     -> string
+  * int32   -> string
+  * int64   -> string
+  * float32 -> string
+  * float64 -> string
+* 文字列から数字へ変換 
+  * string -> int
+  * string -> int32
+  * string -> int64
+  * string -> float32
+  * string -> float64
+
+## Max関数Min関数
+
+* string
+* int
+* int32
+* int64
+* float32
+* float64
+
+## Stream
+
+* string
+* float32
+* float64
+* int
+* int32
+* int64
+* bool
 
 ```go
 func main() {
