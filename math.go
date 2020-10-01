@@ -102,3 +102,59 @@ func MinInt(args ...int) int {
 	}
 	return min
 }
+
+}
+
+func MaxFloat32(args ...float32) float32 {
+	if len(args) == 0 {
+		return 0
+	}
+	max := args[0]
+	for _, arg := range args {
+		if arg > max {
+			max = arg
+		}
+	}
+	return max
+}
+
+func MinFloat32(args ...float32) float32 {
+	if len(args) == 0 {
+		return 0
+	}
+	min := args[0]
+	for _, arg := range args {
+		if arg < min {
+			min = arg
+		}
+	}
+	return min
+}
+
+}
+
+func MaxFloat64(args ...float64) float64 {
+	if len(args) == 0 {
+		return 0
+	}
+	max := args[0]
+	for _, arg := range args {
+		if arg > max {
+			max = arg
+		}
+	}
+	return max
+}
+
+func MinFloat64(args ...float64) float64 {
+	if len(args) == 0 {
+		return 0
+	}
+	min := args[0]
+	for _, arg := range args {
+		if arg < min {
+			min = arg
+		}
+	}
+	return min
+}
