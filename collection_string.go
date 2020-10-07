@@ -351,3 +351,17 @@ func (self *StringStream) Sum() string {
 	}
 	return ""
 }
+func (self *StringStream) Contains(arg string) bool {
+	return self.FindIndex(func(_arg string, index int) bool { return _arg == arg }) != -1
+}
+func (self *StringStream) Distinct() *StringStream {
+	m := map[string]bool{}
+	self.Filter(func(arg string, index int) bool {
+		_, ok := m[arg]
+		if !ok {
+			m[arg] = true
+		}
+		return !ok
+	})
+	return self
+}

@@ -333,3 +333,17 @@ func (self *BoolStream) While(fn func(arg bool, index int) bool) *BoolStream {
 	}
 	return self
 }
+func (self *BoolStream) Contains(arg bool) bool {
+	return self.FindIndex(func(_arg bool, index int) bool { return _arg == arg }) != -1
+}
+func (self *BoolStream) Distinct() *BoolStream {
+	m := map[bool]bool{}
+	self.Filter(func(arg bool, index int) bool {
+		_, ok := m[arg]
+		if !ok {
+			m[arg] = true
+		}
+		return !ok
+	})
+	return self
+}

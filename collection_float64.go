@@ -369,3 +369,17 @@ func (self *Float64Stream) AsInt64() *Int64Stream {
 	stream := Int64StreamFrom(result)
 	return &stream
 }
+func (self *Float64Stream) Contains(arg float64) bool {
+	return self.FindIndex(func(_arg float64, index int) bool { return _arg == arg }) != -1
+}
+func (self *Float64Stream) Distinct() *Float64Stream {
+	m := map[float64]bool{}
+	self.Filter(func(arg float64, index int) bool {
+		_, ok := m[arg]
+		if !ok {
+			m[arg] = true
+		}
+		return !ok
+	})
+	return self
+}
