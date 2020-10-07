@@ -1,26 +1,26 @@
-package ad_type
+package adtype
 
-func MaxStr(strs ...string) string {
-	if len(strs) == 0 {
+func MaxStr(args ...string) string {
+	if len(args) == 0 {
 		return ""
 	}
-	max := strs[0]
-	for _, str := range strs {
-		if str > max {
-			max = str
+	max := args[0]
+	for _, arg := range args {
+		if arg > max {
+			max = arg
 		}
 	}
 	return max
 }
 
-func MinStr(strs ...string) string {
-	if len(strs) == 0 {
+func MinStr(args ...string) string {
+	if len(args) == 0 {
 		return ""
 	}
-	min := strs[0]
-	for _, str := range strs {
-		if str < min {
-			min = str
+	min := args[0]
+	for _, arg := range args {
+		if arg < min {
+			min = arg
 		}
 	}
 	return min
@@ -101,7 +101,6 @@ func MinInt(args ...int) int {
 		}
 	}
 	return min
-}
 
 }
 
@@ -129,7 +128,6 @@ func MinFloat32(args ...float32) float32 {
 		}
 	}
 	return min
-}
 
 }
 
@@ -157,4 +155,99 @@ func MinFloat64(args ...float64) float64 {
 		}
 	}
 	return min
+}
+func SumStr(args ...string) string {
+	result := ""
+	for _, arg := range args {
+		result += arg
+	}
+	return result
+}
+func SumInt(args ...int) int {
+	result := 0
+	for _, arg := range args {
+		result += arg
+	}
+	return result
+}
+func SumInt32(args ...int32) int32 {
+	result := int32(0)
+	for _, arg := range args {
+		result += arg
+	}
+	return result
+}
+func SumInt64(args ...int64) int64 {
+	result := int64(0)
+	for _, arg := range args {
+		result += arg
+	}
+	return result
+}
+
+func SumFloat32(args ...float32) float32 {
+	result := float32(0.0)
+	for _, arg := range args {
+		result += arg
+	}
+	return result
+}
+func SumFloat64(args ...float64) float64 {
+	result := 0.0
+	for _, arg := range args {
+		result += arg
+	}
+	return result
+}
+func AverageInt(args ...int) int {
+	v := 0
+	for _, arg := range args {
+		v += arg
+	}
+	if len(args) == 0 {
+		return 0
+	}
+	return v / len(args)
+}
+
+func AverageInt32(args ...int32) int32 {
+	v := int32(0)
+	for _, arg := range args {
+		v += arg
+	}
+	if len(args) == 0 {
+		return 0
+	}
+	return v / int32(len(args))
+}
+
+func AverageInt64(args ...int64) int64 {
+	v := int64(0)
+	for _, arg := range args {
+		v += arg
+	}
+	if len(args) == 0 {
+		return 0
+	}
+	return v / int64(len(args))
+}
+func AverageFloat32(args ...float32) float32 {
+	v := float32(0)
+	for _, arg := range args {
+		v += arg
+	}
+	if len(args) == 0 {
+		return 0
+	}
+	return v / float32(len(args))
+}
+func AverageFloat64(args ...float64) float64 {
+	v := float64(0)
+	for _, arg := range args {
+		v += arg
+	}
+	if len(args) == 0 {
+		return 0
+	}
+	return v / float64(len(args))
 }

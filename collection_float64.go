@@ -1,4 +1,8 @@
-package ad_type
+package adtype
+
+import (
+	"sort"
+)
 
 func Float64StreamOf(arg ...float64) Float64Stream {
 	return arg
@@ -42,9 +46,9 @@ func (self *Float64Stream) AnyMatch(fn func(arg float64, index int) bool) bool {
 	return false
 }
 func (self *Float64Stream) Clone() *Float64Stream {
-	temp := Float64StreamOf()
-	temp = *self
-	return &temp
+	temp := make([]float64, self.Len())
+	copy(temp, *self)
+	return (*Float64Stream)(&temp)
 }
 
 func (self *Float64Stream) Copy() *Float64Stream {
@@ -56,26 +60,31 @@ func (self *Float64Stream) Concat(arg []float64) *Float64Stream {
 }
 
 func (self *Float64Stream) Delete(index int) *Float64Stream {
-	if len(*self) > index+1 {
-		*self = append((*self)[:index], (*self)[index+1:]...)
-	} else {
-		*self = append((*self)[:index])
-	}
-	return self
+	return self.DeleteRange(index, index)
 }
 
 func (self *Float64Stream) DeleteRange(startIndex int, endIndex int) *Float64Stream {
 	*self = append((*self)[:startIndex], (*self)[endIndex+1:]...)
 	return self
 }
-
-func (self *Float64Stream) Filter(fn func(arg float64, index int) bool) *Float64Stream {
-	_array := []float64{}
-	for i, v := range *self {
-		if fn(v, i) {
-			_array = append(_array, v)
+func (self *Float64Stream) Equals(arr []float64) bool {
+	if (*self == nil) != (arr == nil) || len(*self) != len(arr) {
+		return false
+	}
+	for i := range *self {
+		if (*self)[i] != arr[i] {
+			return false
 		}
 	}
+	return true
+}
+func (self *Float64Stream) Filter(fn func(arg float64, index int) bool) *Float64Stream {
+	_array := Float64StreamOf()
+	self.ForEach(func(v float64, i int) {
+		if fn(v, i) {
+			_array.Add(v)
+		}
+	})
 	*self = _array
 	return self
 }
@@ -89,7 +98,7 @@ func (self *Float64Stream) Find(fn func(arg float64, index int) bool) *float64 {
 }
 
 func (self *Float64Stream) FindIndex(fn func(arg float64, index int) bool) int {
-	for i, v := range *self {
+	for i, v := range self.Val() {
 		if fn(v, i) {
 			return i
 		}
@@ -102,20 +111,20 @@ func (self *Float64Stream) First() *float64 {
 }
 
 func (self *Float64Stream) ForEach(fn func(arg float64, index int)) *Float64Stream {
-	for i, v := range *self {
+	for i, v := range self.Val() {
 		fn(v, i)
 	}
 	return self
 }
 func (self *Float64Stream) ForEachRight(fn func(arg float64, index int)) *Float64Stream {
-	for i := len(*self) - 1; i >= 0; i-- {
-		fn((*self)[i], i)
+	for i := self.Len() - 1; i >= 0; i-- {
+		fn(*self.Get(i), i)
 	}
 	return self
 }
 func (self *Float64Stream) GroupBy(fn func(arg float64, index int) string) map[string][]float64 {
 	m := map[string][]float64{}
-	for i, v := range *self {
+	for i, v := range self.Val() {
 		key := fn(v, i)
 		m[key] = append(m[key], v)
 	}
@@ -129,11 +138,16 @@ func (self *Float64Stream) GroupByValues(fn func(arg float64, index int) string)
 	}
 	return tmp
 }
-func (self *Float64Stream) IsEmpty() bool {
-	if self.Len() == 0 {
-		return true
+func (self *Float64Stream) IndexOf(arg float64) int {
+	for index, _arg := range *self {
+		if _arg == arg {
+			return index
+		}
 	}
-	return false
+	return -1
+}
+func (self *Float64Stream) IsEmpty() bool {
+	return self.Len() == 0
 }
 func (self *Float64Stream) IsPreset() bool {
 	return !self.IsEmpty()
@@ -148,14 +162,12 @@ func (self *Float64Stream) Len() int {
 	}
 	return len(*self)
 }
-
-func (self *Float64Stream) Map(fn func(arg float64, index int) float64) *Float64Stream {
-	_array := make([]float64, 0, len(*self))
-	for i, v := range *self {
-		_array = append(_array, fn(v, i))
-	}
-	*self = _array
+func (self *Float64Stream) Limit(limit int) *Float64Stream {
+	self.Slice(0, limit)
 	return self
+}
+func (self *Float64Stream) Map(fn func(arg float64, index int) float64) *Float64Stream {
+	return self.ForEach(func(v float64, i int) { self.Set(i, fn(v, i)) })
 }
 
 func (self *Float64Stream) MapAny(fn func(arg float64, index int) interface{}) []interface{} {
@@ -198,14 +210,6 @@ func (self *Float64Stream) Map2Float32(fn func(arg float64, index int) float32) 
 	return _array
 }
 
-func (self *Float64Stream) Map2Float64(fn func(arg float64, index int) float64) []float64 {
-	_array := make([]float64, 0, len(*self))
-	for i, v := range *self {
-		_array = append(_array, fn(v, i))
-	}
-	return _array
-}
-
 func (self *Float64Stream) Map2Bool(fn func(arg float64, index int) bool) []bool {
 	_array := make([]bool, 0, len(*self))
 	for i, v := range *self {
@@ -236,142 +240,55 @@ func (self *Float64Stream) NoneMatch(fn func(arg float64, index int) bool) bool 
 
 func (self *Float64Stream) Get(index int) *float64 {
 	if self.Len() > index && index >= 0 {
-		return &(*self)[index]
+		tmp := (*self)[index]
+		return &tmp
 	}
 	return nil
 }
-func (self *Float64Stream) ReduceInit(fn func(result, current float64, index int) float64, initialValue float64) *Float64Stream {
-	result := []float64{}
+func (self *Float64Stream) Peek(fn func(arg *float64, index int)) *Float64Stream {
 	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn(initialValue, v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
+		fn(&v, i)
+		self.Set(i, v)
 	}
-	*self = result
 	return self
 }
 func (self *Float64Stream) Reduce(fn func(result, current float64, index int) float64) *Float64Stream {
-	result := []float64{}
-	for i, v := range *self {
+	return self.ReduceInit(fn, 0)
+}
+func (self *Float64Stream) ReduceInit(fn func(result, current float64, index int) float64, initialValue float64) *Float64Stream {
+	result := Float64StreamOf()
+	self.ForEach(func(v float64, i int) {
 		if i == 0 {
-			result = append(result, fn(0.0, v, i))
+			result.Add(fn(initialValue, v, i))
 		} else {
-			result = append(result, fn(result[i-1], v, i))
+			result.Add(fn(result[i-1], v, i))
 		}
-	}
+	})
 	*self = result
 	return self
 }
-func (self *Float64Stream) ReduceInterface(fn func(result interface{}, current float64, index int) interface{}) []interface{} {
-	result := []interface{}{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn(0.0, v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
-func (self *Float64Stream) ReduceString(fn func(result string, current float64, index int) string) []string {
-	result := []string{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn("", v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
-func (self *Float64Stream) ReduceInt(fn func(result int, current float64, index int) int) []int {
-	result := []int{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn(0, v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
-func (self *Float64Stream) ReduceInt32(fn func(result int32, current float64, index int) int32) []int32 {
-	result := []int32{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn(0, v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
-func (self *Float64Stream) ReduceInt64(fn func(result int64, current float64, index int) int64) []int64 {
-	result := []int64{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn(0, v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
-func (self *Float64Stream) ReduceFloat32(fn func(result float32, current float64, index int) float32) []float32 {
-	result := []float32{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn(0.0, v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
-func (self *Float64Stream) ReduceFloat64(fn func(result float64, current float64, index int) float64) []float64 {
-	result := []float64{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn(0.0, v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
-func (self *Float64Stream) ReduceBool(fn func(result bool, current float64, index int) bool) []bool {
-	result := []bool{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn(false, v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
+
 func (self *Float64Stream) Reverse() *Float64Stream {
-	_array := make([]float64, 0, len(*self))
-	for i := len(*self) - 1; i >= 0; i-- {
-		_array = append(_array, (*self)[i])
+	for i, j := 0, self.Len()-1; i < j; i, j = i+1, j-1 {
+		(*self)[i], (*self)[j] = (*self)[j], (*self)[i]
 	}
-	*self = _array
 	return self
 }
 
 func (self *Float64Stream) Replace(fn func(arg float64, index int) float64) *Float64Stream {
-	for i, v := range *self {
-		(*self)[i] = fn(v, i)
+	return self.Map(fn)
+}
+
+func (self *Float64Stream) Set(index int, val float64) *Float64Stream {
+	if len(*self) > index {
+		(*self)[index] = val
 	}
 	return self
 }
 
-func (self *Float64Stream) Set(index int, val float64) {
-	if len(*self) > index {
-		(*self)[index] = val
-	}
+func (self *Float64Stream) Skip(skip int) *Float64Stream {
+	self.Slice(skip, self.Len()-skip)
+	return self
 }
 
 func (self *Float64Stream) Slice(startIndex int, n int) *Float64Stream {
@@ -386,6 +303,16 @@ func (self *Float64Stream) Slice(startIndex int, n int) *Float64Stream {
 	return self
 }
 
+func (self *Float64Stream) Sort(fn func(i, j int) bool) *Float64Stream {
+	sort.Slice(*self, fn)
+	return self
+}
+
+func (self *Float64Stream) SortStable(fn func(i, j int) bool) *Float64Stream {
+	sort.SliceStable(*self, fn)
+	return self
+}
+
 func (self *Float64Stream) ToList() []float64 {
 	return self.Val()
 }
@@ -395,4 +322,50 @@ func (self *Float64Stream) Val() []float64 {
 		return []float64{}
 	}
 	return *self
+}
+
+func (self *Float64Stream) While(fn func(arg float64, index int) bool) *Float64Stream {
+	for i, v := range self.Val() {
+		if !fn(v, i) {
+			break
+		}
+	}
+	return self
+}
+
+func (self *Float64Stream) Min() float64 {
+	return MinFloat64(self.Val()...)
+}
+
+func (self *Float64Stream) Max() float64 {
+	return MaxFloat64(self.Val()...)
+}
+
+func (self *Float64Stream) Sum() float64 {
+	return SumFloat64(self.Val()...)
+}
+
+func (self *Float64Stream) Average() float64 {
+	return AverageFloat64(self.Val()...)
+}
+func (self *Float64Stream) AsFloat32() *Float32Stream {
+	result := self.Map2Float32(func(arg float64, index int) float32 { return float32(arg) })
+	stream := Float32StreamFrom(result)
+	return &stream
+}
+func (self *Float64Stream) AsInt() *IntegerStream {
+	result := self.Map2Int(func(arg float64, index int) int { return int(arg) })
+	stream := IntegerStreamFrom(result)
+	return &stream
+}
+func (self *Float64Stream) AsInt32() *Int32Stream {
+	result := self.Map2Int32(func(arg float64, index int) int32 { return int32(arg) })
+	stream := Int32StreamFrom(result)
+	return &stream
+}
+
+func (self *Float64Stream) AsInt64() *Int64Stream {
+	result := self.Map2Int64(func(arg float64, index int) int64 { return int64(arg) })
+	stream := Int64StreamFrom(result)
+	return &stream
 }

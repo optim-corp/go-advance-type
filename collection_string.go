@@ -1,4 +1,9 @@
-package ad_type
+package adtype
+
+import (
+	"reflect"
+	"sort"
+)
 
 func StringStreamOf(arg ...string) StringStream {
 	return arg
@@ -42,9 +47,9 @@ func (self *StringStream) AnyMatch(fn func(arg string, index int) bool) bool {
 	return false
 }
 func (self *StringStream) Clone() *StringStream {
-	temp := StringStreamOf()
-	temp = *self
-	return &temp
+	temp := make([]string, self.Len())
+	copy(temp, *self)
+	return (*StringStream)(&temp)
 }
 
 func (self *StringStream) Copy() *StringStream {
@@ -56,26 +61,31 @@ func (self *StringStream) Concat(arg []string) *StringStream {
 }
 
 func (self *StringStream) Delete(index int) *StringStream {
-	if len(*self) > index+1 {
-		*self = append((*self)[:index], (*self)[index+1:]...)
-	} else {
-		*self = append((*self)[:index])
-	}
-	return self
+	return self.DeleteRange(index, index)
 }
 
 func (self *StringStream) DeleteRange(startIndex int, endIndex int) *StringStream {
 	*self = append((*self)[:startIndex], (*self)[endIndex+1:]...)
 	return self
 }
-
-func (self *StringStream) Filter(fn func(arg string, index int) bool) *StringStream {
-	_array := []string{}
-	for i, v := range *self {
-		if fn(v, i) {
-			_array = append(_array, v)
+func (self *StringStream) Equals(arr []string) bool {
+	if (*self == nil) != (arr == nil) || len(*self) != len(arr) {
+		return false
+	}
+	for i := range *self {
+		if (*self)[i] != arr[i] {
+			return false
 		}
 	}
+	return true
+}
+func (self *StringStream) Filter(fn func(arg string, index int) bool) *StringStream {
+	_array := StringStreamOf()
+	self.ForEach(func(v string, i int) {
+		if fn(v, i) {
+			_array.Add(v)
+		}
+	})
 	*self = _array
 	return self
 }
@@ -89,7 +99,7 @@ func (self *StringStream) Find(fn func(arg string, index int) bool) *string {
 }
 
 func (self *StringStream) FindIndex(fn func(arg string, index int) bool) int {
-	for i, v := range *self {
+	for i, v := range self.Val() {
 		if fn(v, i) {
 			return i
 		}
@@ -102,20 +112,21 @@ func (self *StringStream) First() *string {
 }
 
 func (self *StringStream) ForEach(fn func(arg string, index int)) *StringStream {
-	for i, v := range *self {
+	for i, v := range self.Val() {
 		fn(v, i)
 	}
 	return self
 }
 func (self *StringStream) ForEachRight(fn func(arg string, index int)) *StringStream {
-	for i := len(*self) - 1; i >= 0; i-- {
-		fn((*self)[i], i)
+	for i := self.Len() - 1; i >= 0; i-- {
+		fn(*self.Get(i), i)
 	}
 	return self
 }
 func (self *StringStream) GroupBy(fn func(arg string, index int) string) map[string][]string {
 	m := map[string][]string{}
-	for i, v := range *self {
+
+	for i, v := range self.Val() {
 		key := fn(v, i)
 		m[key] = append(m[key], v)
 	}
@@ -129,11 +140,16 @@ func (self *StringStream) GroupByValues(fn func(arg string, index int) string) [
 	}
 	return tmp
 }
-func (self *StringStream) IsEmpty() bool {
-	if self.Len() == 0 {
-		return true
+func (self *StringStream) IndexOf(arg string) int {
+	for index, _arg := range *self {
+		if reflect.DeepEqual(_arg, arg) {
+			return index
+		}
 	}
-	return false
+	return -1
+}
+func (self *StringStream) IsEmpty() bool {
+	return self.Len() == 0
 }
 func (self *StringStream) IsPreset() bool {
 	return !self.IsEmpty()
@@ -148,13 +164,110 @@ func (self *StringStream) Len() int {
 	}
 	return len(*self)
 }
-
+func (self *StringStream) Limit(limit int) *StringStream {
+	self.Slice(0, limit)
+	return self
+}
 func (self *StringStream) Map(fn func(arg string, index int) string) *StringStream {
-	_array := make([]string, 0, len(*self))
-	for i, v := range *self {
-		_array = append(_array, fn(v, i))
+	return self.ForEach(func(v string, i int) { self.Set(i, fn(v, i)) })
+}
+
+func (self *StringStream) NoneMatch(fn func(arg string, index int) bool) bool {
+	return !self.AnyMatch(fn)
+}
+
+func (self *StringStream) Get(index int) *string {
+	if self.Len() > index && index >= 0 {
+		tmp := (*self)[index]
+		return &tmp
 	}
-	*self = _array
+	return nil
+}
+func (self *StringStream) Peek(fn func(arg *string, index int)) *StringStream {
+	for i, v := range *self {
+		fn(&v, i)
+		self.Set(i, v)
+	}
+	return self
+}
+func (self *StringStream) Reduce(fn func(result, current string, index int) string) *StringStream {
+	return self.ReduceInit(fn, "")
+}
+func (self *StringStream) ReduceInit(fn func(result, current string, index int) string, initialValue string) *StringStream {
+	result := StringStreamOf()
+	self.ForEach(func(v string, i int) {
+		if i == 0 {
+			result.Add(fn(initialValue, v, i))
+		} else {
+			result.Add(fn(result[i-1], v, i))
+		}
+	})
+	*self = result
+	return self
+}
+
+func (self *StringStream) Reverse() *StringStream {
+	for i, j := 0, self.Len()-1; i < j; i, j = i+1, j-1 {
+		(*self)[i], (*self)[j] = (*self)[j], (*self)[i]
+	}
+	return self
+}
+
+func (self *StringStream) Replace(fn func(arg string, index int) string) *StringStream {
+	return self.Map(fn)
+}
+
+func (self *StringStream) Set(index int, val string) *StringStream {
+	if len(*self) > index {
+		(*self)[index] = val
+	}
+	return self
+}
+
+func (self *StringStream) Skip(skip int) *StringStream {
+	self.Slice(skip, self.Len()-skip)
+	return self
+}
+
+func (self *StringStream) Slice(startIndex int, n int) *StringStream {
+	last := startIndex + n
+	if len(*self)-1 < startIndex {
+		*self = []string{}
+	} else if len(*self) < last {
+		*self = (*self)[startIndex:len(*self)]
+	} else {
+		*self = (*self)[startIndex:last]
+	}
+	return self
+}
+
+func (self *StringStream) Sort(fn func(i, j int) bool) *StringStream {
+	sort.Slice(*self, fn)
+	return self
+}
+
+func (self *StringStream) SortStable(fn func(i, j int) bool) *StringStream {
+	sort.SliceStable(*self, fn)
+	return self
+}
+
+func (self *StringStream) ToList() []string {
+	return self.Val()
+}
+
+func (self *StringStream) Val() []string {
+	if self == nil {
+		return []string{}
+	}
+	return *self
+}
+
+func (self *StringStream) While(fn func(arg string, index int) bool) *StringStream {
+	for i, v := range self.Val() {
+		if !fn(v, i) {
+			break
+		}
+	}
 	return self
 }
 
@@ -222,177 +335,19 @@ func (self *StringStream) Map2Bytes(fn func(arg string, index int) []byte) [][]b
 	return _array
 }
 
-func (self *StringStream) Map2String(fn func(arg string, index int) string) []string {
-	_array := make([]string, 0, len(*self))
-	for i, v := range *self {
-		_array = append(_array, fn(v, i))
-	}
-	return _array
+func (self *StringStream) Max(fn func(arg string, index int) string) string {
+	return MaxStr(self.Val()...)
+}
+func (self *StringStream) Min(fn func(arg string, index int) string) string {
+	return MinStr(self.Val()...)
 }
 
-func (self *StringStream) NoneMatch(fn func(arg string, index int) bool) bool {
-	return !self.AnyMatch(fn)
-}
-
-func (self *StringStream) Get(index int) *string {
-	if self.Len() > index && index >= 0 {
-		return &(*self)[index]
+func (self *StringStream) Sum() string {
+	self.Reduce(func(result, current string, index int) string {
+		return result + current
+	})
+	if v := self.Last(); v != nil {
+		return *v
 	}
-	return nil
-}
-func (self *StringStream) ReduceInit(fn func(result, current string, index int) string, initialValue string) *StringStream {
-	result := []string{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn(initialValue, v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	*self = result
-	return self
-}
-func (self *StringStream) Reduce(fn func(result, current string, index int) string) *StringStream {
-	result := []string{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn("", v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	*self = result
-	return self
-}
-func (self *StringStream) ReduceInterface(fn func(result interface{}, current string, index int) interface{}) []interface{} {
-	result := []interface{}{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn("", v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
-func (self *StringStream) ReduceString(fn func(result string, current string, index int) string) []string {
-	result := []string{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn("", v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
-func (self *StringStream) ReduceInt(fn func(result int, current string, index int) int) []int {
-	result := []int{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn(0, v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
-func (self *StringStream) ReduceInt32(fn func(result int32, current string, index int) int32) []int32 {
-	result := []int32{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn(0, v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
-func (self *StringStream) ReduceInt64(fn func(result int64, current string, index int) int64) []int64 {
-	result := []int64{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn(0, v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
-func (self *StringStream) ReduceFloat32(fn func(result float32, current string, index int) float32) []float32 {
-	result := []float32{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn(0.0, v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
-func (self *StringStream) ReduceFloat64(fn func(result float64, current string, index int) float64) []float64 {
-	result := []float64{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn(0.0, v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
-func (self *StringStream) ReduceBool(fn func(result bool, current string, index int) bool) []bool {
-	result := []bool{}
-	for i, v := range *self {
-		if i == 0 {
-			result = append(result, fn(false, v, i))
-		} else {
-			result = append(result, fn(result[i-1], v, i))
-		}
-	}
-	return result
-}
-func (self *StringStream) Reverse() *StringStream {
-	_array := make([]string, 0, len(*self))
-	for i := len(*self) - 1; i >= 0; i-- {
-		_array = append(_array, (*self)[i])
-	}
-	*self = _array
-	return self
-}
-
-func (self *StringStream) Replace(fn func(arg string, index int) string) *StringStream {
-	for i, v := range *self {
-		(*self)[i] = fn(v, i)
-	}
-	return self
-}
-
-func (self *StringStream) Set(index int, val string) {
-	if len(*self) > index {
-		(*self)[index] = val
-	}
-}
-
-func (self *StringStream) Slice(startIndex int, n int) *StringStream {
-	last := startIndex + n
-	if len(*self)-1 < startIndex {
-		*self = []string{}
-	} else if len(*self) < last {
-		*self = (*self)[startIndex:len(*self)]
-	} else {
-		*self = (*self)[startIndex:last]
-	}
-	return self
-}
-
-func (self *StringStream) ToList() []string {
-	return self.Val()
-}
-
-func (self *StringStream) Val() []string {
-	if self == nil {
-		return []string{}
-	}
-	return *self
+	return ""
 }

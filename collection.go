@@ -1,4 +1,4 @@
-package ad_type
+package adtype
 
 type (
 	StringStream  []string

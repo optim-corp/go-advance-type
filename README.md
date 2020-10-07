@@ -36,12 +36,12 @@
 * bool
 
 ```go
-import ad_type "github.com/optim-kazuhiro-seida/go-advance-type"
+import adtype "github.com/optim-kazuhiro-seida/go-advance-type"
 func main() {
-	fmt.Println(ad_type.Long2Str(19018019) + "/" + ad_type.Int2Str(1029))
-	fmt.Println(ad_type.Any2Int32("3211", 0))
-	fmt.Println(ad_type.Any2Int("hogehoge", 0))
-	stream := ad_type.StringStreamOf("0", "1", "2")
+	fmt.Println(adtype.Long2Str(19018019) + "/" + adtype.Int2Str(1029))
+	fmt.Println(adtype.Any2Int32("3211", 0))
+	fmt.Println(adtype.Any2Int("hogehoge", 0))
+	stream := adtype.StringStreamOf("0", "1", "2")
 	stream.Add("0").Filter(func(str string, index int) bool {
 		return str == "0"
 	})
