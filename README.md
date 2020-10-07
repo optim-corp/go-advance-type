@@ -4,26 +4,24 @@
 
 ## 型変換
 * 数字から文字列へ変換	
-  * int     -> string
-  * int32   -> string
-  * int64   -> string
-  * float32 -> string
-  * float64 -> string
+  * int     -> string : func Int2Str(x int) string
+  * int64   -> string : func Long2Str(x int64) string
+  * float64 -> string : func Double2Str(x float64) string
 * 文字列から数字へ変換 
-  * string -> int
-  * string -> int32
-  * string -> int64
-  * string -> float32
-  * string -> float64
+  * string -> int     : func Str2Int(str string, defaultNumber int) int
+  * string -> int32   : func Str2Int32(str string, defaultNumber int32) int32
+  * string -> int64   : func Str2Long(str string, defaultNumber int64) int64
+  * string -> float32 : func Str2Float(str string, defaultNumber float32) float32 
+  * string -> float64 : func Str2Double(str string, defaultNumber float64) float64
 
-## Max関数Min関数
+## Max,Min,Sum,Average関数
 
-* string
-* int
-* int32
-* int64
-* float32
-* float64
+* string  : MaxStr, MinStr, SumStr
+* int     : MaxInt, MinInt, SumInt, AverageInt
+* int32   : MaxInt32, MinInt32, SumInt32, AverageInt32
+* int64   : MaxInt64, MinInt64, SumInt64, AverageInt64
+* float32 : MaxFloat32, MinFloat32, SumFloat32, AverageFloat32
+* float64 : MaxFloat64, MinFloat64, SumFloat64, AverageFloat64
 
 ## Stream
 
