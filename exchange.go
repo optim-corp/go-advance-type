@@ -13,18 +13,18 @@ func Str2Int(str string, defaultNumber int) int {
 
 	}
 }
+func Str2Int32(str string, defaultNumber int32) int32 {
+	if i, err := strconv.ParseInt(str, 10, 32); err != nil {
+		return defaultNumber
+	} else {
+		return int32(i)
+	}
+}
 func Str2Long(str string, defaultNumber int64) int64 {
 	if i, err := strconv.ParseInt(str, 0, 64); err != nil {
 		return defaultNumber
 	} else {
 		return i
-	}
-}
-func Str2Int32(str string, defaultNumber int32) int32 {
-	if i, err := strconv.Atoi(str); err != nil {
-		return defaultNumber
-	} else {
-		return int32(i)
 	}
 }
 func Str2Double(str string, defaultNumber float64) float64 {
@@ -44,6 +44,9 @@ func Str2Float(str string, defaultNumber float32) float32 {
 
 func Double2Str(x float64) string {
 	return strconv.FormatFloat(x, 'f', -1, 64)
+}
+func Float2Str(x float32) string {
+	return Double2Str(float64(x))
 }
 
 func Long2Str(x int64) string {

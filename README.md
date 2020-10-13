@@ -37,26 +37,30 @@
 * bool
 
 ## Usage
-
+ 
 ```go
 import adtype "github.com/optim-kazuhiro-seida/go-advance-type"
-func main() {
-	fmt.Println(adtype.Long2Str(19018019) + "/" + adtype.Int2Str(1029))
-	fmt.Println(adtype.Any2Int32("3211", 0))
-	fmt.Println(adtype.Any2Int("hogehoge", 0))
-	stream := adtype.StringStreamOf("0", "1", "2")
-	stream.Add("0").Filter(func(str string, index int) bool {
-		return str == "0"
-	})
-	fmt.Println(stream)
-}
+```
+### 型変換
+
+#### From Number
+
+```go
+result = adtype.Int2Str(32)
+result = adtype.Long2Str(32)
+result = adtype.Double2Str(32)
+result = adtype.Float2Str(32)
 ```
 
-output
+#### From String
 
+```go
+defaultNumber := 100
+result = adtype.Str2Int("100", defaultNumber)
+result = adtype.Str2Int32("100", int32(defaultNumber))
+result = adtype.Str2Long("100", int64(defaultNumber))
+result = adtype.Str2Float("100", float32(defaultNumber))
+result = adtype.Str2Double("100", float64(defaultNumber))
 ```
-19018019/1029
-3211
-0
-[0 0]
-```
+
+
