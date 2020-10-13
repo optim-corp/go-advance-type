@@ -112,7 +112,7 @@ resultMatch = stream.AnyMatch(func(arg string, _ int) bool { return arg == "" })
 resultMatch = stream.NoneMatch(func(_ string, _ int) bool { return false })      //resultMatch = true
 resultMatch = stream.Contains("5")                                               //resultMatch = true
 resultMatch = stream.Equals([]string{"0", "2", "3"})                             //resultMatch = false
-resultMatch = stream.IsEmpty()                                                   //resultMatch = false
+resultMatch = stream.IsEmpty()                                                   //resultMatch = true
 resultMatch = stream.IsPreset()                                                  //resultMatch = false
 stream.FindIndex(func(arg string, _ int) bool { return arg == "3" })             //3
 ```
