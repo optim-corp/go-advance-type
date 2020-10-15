@@ -2,6 +2,12 @@
 
 痒い所に手が届くユーティリティ
 
+## Install
+
+```shell
+go get -u github.com/optim-kazuhiro-seida/go-advance-type
+```
+
 ## 型変換
 |  変換  |  メソッド  |
 | ---- | ---- |
